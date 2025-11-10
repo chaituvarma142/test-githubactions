@@ -1,0 +1,30 @@
+# This is the name of your workflow. It will show up in the "Actions" tab.
+name: Simple CI Workflow
+
+# 1. This is the EVENT (the trigger)
+# Run this workflow on every 'push' and 'pull_request'
+on: [push, pull_request]
+
+# 2. This is the JOB
+# We are defining a single job called 'build'
+jobs:
+  build:
+    # 3. This is the RUNNER
+    # We'll use the latest version of Ubuntu provided by GitHub
+    runs-on: ubuntu-latest
+
+    # 4. These are the STEPS
+    # Steps run in order inside the 'build' job
+    steps:
+      # This is an ACTION. 'actions/checkout@v4' is a pre-built
+      # script that downloads your repository's code onto the runner.
+      - name: Checkout repository code
+        uses: actions/checkout@v4
+
+      # This is a COMMAND. 'run:' executes a shell command.
+      - name: Run a simple command
+        run: |
+          echo "Hello, GitHub Actions! 👋"
+          echo "I'm running in a VM."
+          echo "Here are the files in the repository:"
+          ls -la
