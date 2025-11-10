@@ -1,0 +1,75 @@
+# Name of the workflow
+name: Python CI with Docker Build
+
+# Run on push events to the 'main' branch
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+# Define the jobs
+jobs:
+  # ------------------------------------
+  # JOB 1: Test the Python Code
+  # ------------------------------------
+  test:
+    # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up the Python environment
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.9
+
+      # 3. Install the dependencies from requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      # 4. Run the tests using pytest
+      - name: Run tests with pytest
+        run: pytest
+
+  # ------------------------------------
+  # JOB 2: Build the Docker Image
+  # ------------------------------------
+  build-docker:
+    # Use the latest Ubuntu runner
+    runs-on: ubuntu-latest
+    
+    # This job 'needs' the 'test' job to succeed first
+    needs: test
+
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Docker Buildx (a modern build toolkit)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. This is the main action that builds the image.
+      # We are NOT pushing it to a registry yet.
+      # 'load: true' builds the image and loads it into the
+      # runner's local Docker daemon so we can test it.
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .         # Use the current directory as build context
+          file: ./Dockerfile # Path to the Dockerfile
+          push: false        # We are not pushing the image
+          load: true         # Load the image into the local daemon
+          tags: my-python-app:latest # Tag the image
+
+      # 4. (Optional) Verify the image was built
+      - name: Show Docker images
+        run: docker images
